@@ -68,10 +68,18 @@ class XMLObject {
 
 extension XMLElement {
     func localizedTexts() -> [String]? {
+        // if a custom localizedText is set, use that one
+        let runtimeAttr = children.first(where: { $0.name == "userDefinedRuntimeAttributes" })
+        let userAttr = runtimeAttr?.children.first(where: { $0.name == "userDefinedRuntimeAttribute" && $0.attributes["keyPath"] == "localizedText" })
+        if let text = userAttr?.attributes["value"], !text.isEmpty {
+            return [text]
+        }
+        
+        
         switch name {
         case "button":
             return children.filter({ $0.name == "state" }).flatMap({ $0.attributes["title" ]})
-        case "label", "textView":
+        case "label", "textView", "textField":
             return attributes["text"].flatMap({ [ $0 ] }) ?? children.filter({ $0.name == "string" }).flatMap({ $0.text })
         case "barButtonItem", "navigationItem", "tabBarItem":
             return attributes["title"].flatMap({ [ $0 ] })
@@ -97,9 +105,10 @@ class Xib: XMLObject {
         var allStrings: [String] = []
         localizedElements?.forEach({ (element) in
             if let strings = element.localizedTexts() {
-                allStrings.append(contentsOf: strings)
+                let processNewLines = strings.map({ $0.replacingOccurrences(of: "\n", with: "\\n") })
+                allStrings.append(contentsOf: processNewLines)
             } else {
-                print("-------Not found----- - \(element.name) - \(file!.filePath)")
+                print("-------Not supported----- - \(element.name) - \(file!.filePath)")
             }
         })
         
