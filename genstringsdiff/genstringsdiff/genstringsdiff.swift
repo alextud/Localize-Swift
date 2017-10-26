@@ -1,11 +1,16 @@
+#!/usr/bin/swift
+
 import Foundation
 
 class GenStringsDiff {
+    let apps = ["./genstrings.swift", "./genstringsfromxibs"]
+    let mainLanguageDirectory = ["en.lproj"]
+    
     let fileManager = FileManager.default
     let acceptedFileExtensions = ["strings"]
     let excludedFolderNames = ["Carthage"]
     let excludedFileNames = [""]
-    let mainLanguageDirectory = ["en.lproj"]
+    
     
     // Performs the genstrings functionality
     func perform(path: String? = nil) {
@@ -17,14 +22,15 @@ class GenStringsDiff {
         
         let newDictionary = newLocalizedDictionary(path: path)
         
+        let processedStrings = localizableString(from: newDictionary)
+        guard !processedStrings.isEmpty else {
+            print("============ no text found for localization ===========")
+            return
+        }
+        
         guard !allFiles.isEmpty else {
-            let processedStrings = localizableString(from: newDictionary)
-            guard !processedStrings.isEmpty else {
-                print("============ no text found for localization ===========")
-                return
-            }
-            
-            print("============ 1 create ", mainLanguageDirectory.first ?? "en.lproj", " ===========")
+            print("============ did not found ", mainLanguageDirectory.first ?? "en.lproj", " ===========")
+            print("============ 1 create ", mainLanguageDirectory.first ?? "en.lproj", " directory ===========")
             print("============ 2 add contents below into Localizable.string ===========")
             print(processedStrings)
             return
@@ -54,9 +60,6 @@ class GenStringsDiff {
     }
     
     func newLocalizedDictionary(path: String? = nil) -> [String: String] {
-        let apps = ["/Users/alextud/Projects/Localize-Swift/genstrings.swift",
-                    "/Users/alextud/Projects/Localize-Swift/genstringsfromxibs/bin/genstringsfromxibs"]
-        
         var currentLocalizableStrings: [String : String] = [:]
         for app in apps {
             let output = path != nil ? shell(app, path!) : shell(app)
@@ -157,4 +160,8 @@ func localizableString(from: [String: String]) -> String {
 }
 
 
+
+let path: String? = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : nil
+let genStrings = GenStringsDiff()
+genStrings.perform(path: path)
 
