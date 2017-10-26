@@ -8,12 +8,7 @@
 
 import Foundation
 
-if CommandLine.arguments.count == 1 {
-    print("Invalid usage. Missing path to .storyboard | .xib ")
-    exit(1)
-}
-
-let argument = CommandLine.arguments[1]
+let argument = CommandLine.arguments.count == 2 ? CommandLine.arguments[1] : "."
 var filePaths:[String] = []
 
 // storyboards

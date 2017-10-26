@@ -9,7 +9,7 @@ class GenStringsDiff {
     
     let fileManager = FileManager.default
     let acceptedFileExtensions = ["strings"]
-    let excludedFolderNames = ["Carthage"]
+    let excludedFolderNames = ["Carthage", "Pods"]
     let excludedFileNames = [""]
     
     
@@ -61,9 +61,15 @@ class GenStringsDiff {
     }
     
     func newLocalizedDictionary(path: String? = nil) -> [String: String] {
+        let currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let url = URL(fileURLWithPath: CommandLine.arguments[0], relativeTo: currentDirectoryURL)
+        //        print("script at: " + url.path)
+        let basePath = url.deletingLastPathComponent().path
+        
         var currentLocalizableStrings: [String : String] = [:]
         for app in apps {
-            let output = path != nil ? shell(app, path!) : shell(app)
+            let appFullPath = basePath + "/" + app
+            let output = path != nil ? shell(appFullPath , path!) : shell(appFullPath)
             let outputDictionary = localizableDictionary(from: output)
             
             outputDictionary.forEach({ (key, value) in
@@ -165,4 +171,3 @@ func localizableString(from: [String: String]) -> String {
 let path: String? = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : nil
 let genStrings = GenStringsDiff()
 genStrings.perform(path: path)
-
